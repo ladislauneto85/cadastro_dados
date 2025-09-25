@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # Apps de Terceiros
     'crispy_forms',
     'crispy_bootstrap5',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -128,10 +129,43 @@ USE_TZ = True
 
 # Static and Media files
 STATIC_URL = 'static/'
-MEDIA_URL = '/media/'
+#MEDIA_URL = '/media/'
 STATIC_ROOT = BASE_DIR / 'staticfiles' # O WhiteNoise usará esta pasta
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# A Vercel já tem as variáveis, não precisa do load_dotenv para isso em produção.
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY')
+SUPABASE_BUCKET_NAME = os.environ.get('SUPABASE_BUCKET_NAME')
+
+if SUPABASE_URL: # Apenas configure se as variáveis existirem
+    # Extrai o ID do projeto da URL para usar nas configurações do S3
+    project_id = SUPABASE_URL.split('//')[1].split('.')[0]
+    
+    # Configurações para o django-storages usar o Supabase (que é compatível com S3)
+    AWS_ACCESS_KEY_ID = project_id
+    AWS_SECRET_ACCESS_KEY = SUPABASE_SERVICE_KEY
+    AWS_STORAGE_BUCKET_NAME = SUPABASE_BUCKET_NAME
+    AWS_S3_ENDPOINT_URL = f"{SUPABASE_URL}/storage/v1"
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400', # Cache de 1 dia
+    }
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None # Supabase gerencia permissões via bucket/policies
+    
+    # Define o backend de armazenamento padrão para arquivos de mídia
+    # Para Django 4.2+ (que você está usando)
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+        },
+        # Mantém a configuração do Whitenoise para arquivos estáticos
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
 
 
 # Crispy Forms settings
