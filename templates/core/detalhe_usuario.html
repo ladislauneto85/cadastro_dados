@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes de {{ usuario_selecionado.info_pessoais.nome_completo|default:usuario_selecionado.username }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'admin_visualizacao' %}" class="btn btn-secondary mb-3"><i class="bi bi-arrow-left"></i> Voltar para a lista</a>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h3 class="h4 mb-0">Ficha Cadastral de: {{ usuario_selecionado.info_pessoais.nome_completo|default:usuario_selecionado.username }}</h3>
+    </div>
+    <div class="card-body">
+        
+        <div class="section-card mb-4">
+            <h4 class="mb-3 border-bottom pb-2">Informações Pessoais</h4>
+            {% if info_pessoais %}
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        {% if info_pessoais.foto %}
+                            <img src="{{ info_pessoais.foto.url }}" alt="Foto de {{ info_pessoais.nome_completo }}" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="text-muted p-4">Sem foto</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-6"><p><strong>Nome Completo:</strong> {{ info_pessoais.nome_completo|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>E-mail:</strong> {{ info_pessoais.email|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>CPF:</strong> {{ info_pessoais.cpf|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>RG:</strong> {{ info_pessoais.rg|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>Data de Nascimento:</strong> {{ info_pessoais.data_nascimento|date:"d/m/Y"|default:"Não informado" }} ({{ info_pessoais.idade|default:"?" }} anos)</p></div>
+                            <div class="col-md-6"><p><strong>Telefone:</strong> {{ info_pessoais.telefone|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>Grupo Sanguíneo:</strong> {{ info_pessoais.grupo_sanguineo|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>Estado Civil:</strong> {{ info_pessoais.get_estado_civil_display|default:"Não informado" }}</p></div>
+                            <div class="col-md-6"><p><strong>Escolaridade:</strong> {{ info_pessoais.get_escolaridade_display|default:"Não informado" }}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6"><p><strong>Nº CNH:</strong> {{ info_pessoais.cnh_numero|default:"Não informado" }}</p></div>
+                    <div class="col-md-3"><p><strong>Categoria CNH:</strong> {{ info_pessoais.cnh_categoria|default:"-" }}</p></div>
+                    <div class="col-md-3"><p><strong>Validade CNH:</strong> {{ info_pessoais.cnh_validade|date:"d/m/Y"|default:"-" }}</p></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6"><p><strong>Título de Eleitor:</strong> {{ info_pessoais.titulo_eleitor|default:"Não informado" }}</p></div>
+                    <div class="col-md-3"><p><strong>Zona:</strong> {{ info_pessoais.zona|default:"-" }}</p></div>
+                    <div class="col-md-3"><p><strong>Seção:</strong> {{ info_pessoais.secao|default:"-" }}</p></div>
+                    <div class="col-md-12"><p><strong>Município de Votação:</strong> {{ info_pessoais.municipio_votacao|default:"Não informado" }}</p></div>
+                </div>
+            {% else %}
+                <p class="text-muted">Nenhuma informação pessoal encontrada para este usuário.</p>
+            {% endif %}
+        </div>
+
+        <div class="section-card mb-4">
+            <h4 class="mb-3 border-bottom pb-2">Informações Funcionais</h4>
+            {% if info_funcionais %}
+                <div class="row">
+                    <div class="col-md-4"><p><strong>Nome de Guerra:</strong> {{ info_funcionais.nome_guerra|default:"Não informado" }}</p></div>
+                    <div class="col-md-4"><p><strong>Posto/Graduação:</strong> {{ info_funcionais.get_posto_graduacao_display|default:"Não informado" }}</p></div>
+                    <div class="col-md-4"><p><strong>Matrícula:</strong> {{ info_funcionais.matricula|default:"Não informado" }}</p></div>
+                    <div class="col-md-4"><p><strong>Data de Admissão:</strong> {{ info_funcionais.data_admissao|date:"d/m/Y"|default:"Não informado" }}</p></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4"><p><strong>Banco:</strong> {{ info_funcionais.banco|default:"Não informado" }}</p></div>
+                    <div class="col-md-4"><p><strong>Agência:</strong> {{ info_funcionais.agencia|default:"Não informado" }}</p></div>
+                    <div class="col-md-4"><p><strong>Conta Corrente:</strong> {{ info_funcionais.conta_corrente|default:"Não informado" }}</p></div>
+                </div>
+                <h5 class="mt-4">Documentos Anexados:</h5>
+                <ul class="list-group">
+                {% for doc in info_funcionais.documentos.all %}
+                    <li class="list-group-item"><a href="{{ doc.arquivo.url }}" target="_blank"><i class="bi bi-file-earmark-arrow-down"></i> {{ doc.nome_documento }}</a></li>
+                {% empty %}
+                    <li class="list-group-item text-muted">Nenhum documento cadastrado.</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Nenhuma informação funcional encontrada para este usuário.</p>
+            {% endif %}
+        </div>
+        
+        <div class="section-card">
+            <h4 class="mb-3 border-bottom pb-2">Informações Familiares e de Endereço</h4>
+            {% if info_familiares %}
+                <div class="row">
+                    <div class="col-md-6"><p><strong>Cônjuge:</strong> {{ info_familiares.conjuge_nome|default:"Não informado" }}</p></div>
+                    <div class="col-md-6"><p><strong>Data de Nasc. Cônjuge:</strong> {{ info_familiares.conjuge_data_nascimento|date:"d/m/Y"|default:"Não informado" }}</p></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-8"><p><strong>Endereço:</strong> {{ info_familiares.endereco|default:"Não informado" }}</p></div>
+                    <div class="col-md-4"><p><strong>Número:</strong> {{ info_familiares.numero_casa|default:"-" }}</p></div>
+                    <div class="col-md-6"><p><strong>Complemento:</strong> {{ info_familiares.complemento|default:"-" }}</p></div>
+                    <div class="col-md-6"><p><strong>Bairro:</strong> {{ info_familiares.bairro|default:"Não informado" }}</p></div>
+                    <div class="col-md-6"><p><strong>Cidade:</strong> {{ info_familiares.cidade|default:"Não informado" }}</p></div>
+                    <div class="col-md-6"><p><strong>CEP:</strong> {{ info_familiares.cep|default:"Não informado" }}</p></div>
+                </div>
+                <h5 class="mt-4">Filhos:</h5>
+                <ul class="list-group">
+                {% for filho in info_familiares.filhos.all %}
+                    <li class="list-group-item">{{ filho.nome }} ({{ filho.idade }} anos) - Nasc: {{ filho.data_nascimento|date:"d/m/Y" }}</li>
+                {% empty %}
+                    <li class="list-group-item text-muted">Nenhum filho cadastrado.</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Nenhuma informação familiar encontrada para este usuário.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

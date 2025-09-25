@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Menu de Cadastro</h5>
+                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a class="nav-link active" id="pessoal-tab" data-bs-toggle="pill" href="#pessoal" role="tab">Informações Pessoais</a>
+                    <a class="nav-link" id="funcional-tab" data-bs-toggle="pill" href="#funcional" role="tab">Informações Funcionais</a>
+                    <a class="nav-link" id="familiar-tab" data-bs-toggle="pill" href="#familiar" role="tab">Informações Familiares</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h4 mb-0">Minhas Informações</h2>
+                </div>
+                <div class="card-body">
+
+                    {% if pessoal_form.errors or funcional_form.errors or familiar_form.errors %}
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">Houve um erro ao salvar!</h5>
+                            <p>Por favor, corrija os seguintes problemas:</p>
+                            <hr>
+                            <ul>
+                                {% for field, errors in pessoal_form.errors.items %}
+                                    <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                                {% endfor %}
+                                {% for field, errors in funcional_form.errors.items %}
+                                    <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                                {% endfor %}
+                                {% for field, errors in familiar_form.errors.items %}
+                                    <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                
+                    <div class="tab-content" id="v-pills-tabContent">
+                        <div class="tab-pane fade show active" id="pessoal" role="tabpanel">
+                            <fieldset>
+                                <legend class="h5 border-bottom pb-2 mb-3">Dados Pessoais</legend>
+                                {{ pessoal_form|crispy }}
+                            </fieldset>
+                        </div>
+
+                        <div class="tab-pane fade" id="funcional" role="tabpanel">
+                             <fieldset>
+                                <legend class="h5 border-bottom pb-2 mb-3">Dados Funcionais</legend>
+                                {{ funcional_form|crispy }}
+                             </fieldset>
+                             <hr class="my-4">
+                             <fieldset>
+                                <legend class="h5 border-bottom pb-2 mb-3">Gerenciar Documentos</legend>
+                                <h6>Documentos Salvos</h6>
+                                {% if documentos_existentes %}
+                                    {% for doc in documentos_existentes %}
+                                    <div class="row mb-2 align-items-center">
+                                        <div class="col-md-6">
+                                            <a href="{{ doc.arquivo.url }}" target="_blank">
+                                                <i class="bi bi-file-earmark-arrow-down"></i> {{ doc.nome_documento }}
+                                            </a>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="documentos_a_deletar" value="{{ doc.id }}" id="delete_doc_{{ doc.id }}">
+                                                <label class="form-check-label text-danger" for="delete_doc_{{ doc.id }}">
+                                                    Marcar para Excluir
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">Nenhum documento salvo.</p>
+                                {% endif %}
+                                <hr>
+                                <h6>Adicionar Novos Documentos</h6>
+                                <div id="new-documentos-container"></div>
+                                <button type="button" id="add-documento-btn" class="btn btn-primary mt-2">
+                                    <i class="bi bi-plus-circle"></i> Adicionar Documento
+                                </button>
+                             </fieldset>
+                        </div>
+
+                        <div class="tab-pane fade" id="familiar" role="tabpanel">
+                           <fieldset>
+                                <legend class="h5 border-bottom pb-2 mb-3">Dados Familiares</legend>
+                                {{ familiar_form|crispy }}
+                            </fieldset>
+                            <hr class="my-4">
+                            <fieldset>
+                                <legend class="h5 border-bottom pb-2 mb-3">Gerenciar Filhos</legend>
+                                <h6>Filhos Salvos</h6>
+                                {% if filhos_existentes %}
+                                    {% for filho in filhos_existentes %}
+                                    <div class="row mb-2 align-items-center">
+                                        <div class="col-md-6">
+                                            <p class="mb-0">{{ filho.nome }} ({{ filho.idade }} anos)</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="filhos_a_deletar" value="{{ filho.id }}" id="delete_filho_{{ filho.id }}">
+                                                <label class="form-check-label text-danger" for="delete_filho_{{ filho.id }}">
+                                                    Marcar para Excluir
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">Nenhum filho salvo.</p>
+                                {% endif %}
+                                <hr>
+                                <h6>Adicionar Novos Filhos</h6>
+                                <div id="new-filhos-container"></div>
+                                <button type="button" id="add-filho-btn" class="btn btn-primary mt-2">
+                                    <i class="bi bi-plus-circle"></i> Adicionar Filho
+                                </button>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- LÓGICA PARA IMPEDIR CLIQUE DUPLO AO SALVAR ---
+    const mainForm = document.querySelector('form');
+    if (mainForm) {
+        mainForm.addEventListener('submit', function() {
+            const submitButton = mainForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Salvando...
+                `;
+            }
+        });
+    }
+
+    // --- LÓGICA PARA ADICIONAR NOVOS DOCUMENTOS ---
+    const docContainer = document.getElementById('new-documentos-container');
+    const addDocButton = document.getElementById('add-documento-btn');
+    if (addDocButton) {
+        addDocButton.addEventListener('click', function() {
+            const newDocRow = document.createElement('div');
+            newDocRow.classList.add('row', 'align-items-center', 'mb-3', 'documento-row-new');
+            newDocRow.innerHTML = `
+                <div class="col-md-5"><label class="form-label">Nome do Novo Documento</label><input type="text" name="nome_documento" class="form-control" required></div>
+                <div class="col-md-5"><label class="form-label">Novo Arquivo</label><input type="file" name="arquivo_documento" class="form-control" required></div>
+                <div class="col-md-2 d-flex align-items-end"><button type="button" class="btn btn-outline-danger btn-sm remove-new-row-btn">Remover</button></div>
+            `;
+            docContainer.appendChild(newDocRow);
+        });
+    }
+
+    // --- LÓGICA PARA ADICIONAR NOVOS FILHOS ---
+    const filhosContainer = document.getElementById('new-filhos-container');
+    const addFilhoButton = document.getElementById('add-filho-btn');
+    if (addFilhoButton) {
+        addFilhoButton.addEventListener('click', function() {
+            const newFilhoRow = document.createElement('div');
+            newFilhoRow.classList.add('row', 'align-items-center', 'mb-2', 'filho-row-new');
+            newFilhoRow.innerHTML = `
+                <div class="col-md-6"><label class="form-label">Nome do Novo Filho</label><input type="text" name="nome_filho_novo" class="form-control" placeholder="Nome completo do filho"></div>
+                <div class="col-md-4"><label class="form-label">Data de Nascimento</label><input type="date" name="nascimento_filho_novo" class="form-control"></div>
+                <div class="col-md-2 d-flex align-items-end"><button type="button" class="btn btn-outline-danger btn-sm remove-new-row-btn">Remover</button></div>
+            `;
+            filhosContainer.appendChild(newFilhoRow);
+        });
+    }
+
+    // --- LÓGICA GERAL PARA REMOVER LINHAS DINÂMICAS ADICIONADAS ---
+    const formBody = document.querySelector('.card-body');
+    if (formBody) {
+        formBody.addEventListener('click', function(event) {
+            if (event.target && event.target.classList.contains('remove-new-row-btn')) {
+                // Encontra a linha pai (seja de documento ou de filho) e a remove
+                event.target.closest('.documento-row-new, .filho-row-new').remove();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
